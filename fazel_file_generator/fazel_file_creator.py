@@ -2,6 +2,8 @@
 ## Rob Main, Fang Xi Lin, Daniel Baker
 ## Last edited 2018-08-16
 
+from pathlib import Path
+
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy import units as u
@@ -13,7 +15,10 @@ import argparse
 from distutils.util import strtobool
 
 # Load saved source locations
-source_list = {r["name"]: r["coord"] for r in QTable.read("sources.ecsv")}
+p = Path("sources.ecsv")
+if not p.exists():
+    p = Path(__file__).parent / "data" / "sources.ecsv"
+source_list = {r["name"]: r["coord"] for r in QTable.read(p)}
 
 # Parse command line argument
 
