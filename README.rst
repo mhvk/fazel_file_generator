@@ -1,8 +1,62 @@
+****************************************************
 Algonquin Radio Observatory Fazel File creation code
-----------------------------------------------------
+****************************************************
+
+.. image:: http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat
+    :target: http://www.astropy.org
+    :alt: Powered by Astropy Badge
+
+.. image:: https://github.com/mhvk/screens/workflows/CI/badge.svg
+   :target: https://github.com/mhvk/screens/actions
+   :alt: Test Status
+
+A fazel file is used for ARO 46m pointing-control. It contains a sequence of
+Azimuth angle and Elevation angle that tells where the telescope should point
+at.
+
+File format
+~~~~~~~~~~~
+
+The first line is a header denoted by '#'. The date, followed by the Azimuth
+angle (Deg Min Sec), followed by Azimuth Rate (deg/s), followed by the
+Elevation angle (Deg Min Sec), followed by Elevation rate (deg/s).
+
+The date format is YYYY.DDD.HH:MM:SS (yday with some formatting in astropy),
+where DDD is the day number of the year. Also, azimuth and elevation rates are
+not actually used by the pointing system, but their fields need to be occupied
+for formatting's sake.
+
+The current version of the Fazel file generator will also plot the source
+position during the observation, and tells you if either the source dips below
+the horizon, or if you may encounter the cable wrap issue. In these cases,
+double check the observation schedule.
+
+.. Installation
+
+Installation instructions
+=========================
+
+The package and its dependencies can be installed with::
+
+  pip install git+https://github.com/mhvk/fazel_file_generator.git#egg=fazel_file_generator
+
+Typically, one might as well use a virtual environment, i.e., precede the
+above with::
+
+  python -m venv fazel
+  source fazel/bin/activate
+
+Usage
+=====
+
+Sample usage to get a fazel file to observe the Crab now using the CHIME feed::
+
+  fazel_file_creator -f chime -s Crab -d 2015-06-01 -hs 16
+
+For more information, do ``fazel_file_creator -h``.
 
 License
--------
+=======
 
 This project is Copyright (c) Rob Main, Fang Xi Lin, Daniel Baker, Jing Luo, Marten H. van Kerkwijk and licensed under
 the terms of the GNU GPL v3+ license. This package is based upon
@@ -11,33 +65,7 @@ which is licensed under the BSD 3-clause licence. See the licenses folder for
 more information.
 
 Contributing
-------------
+============
 
-We love contributions! fazel_file_generator is open source,
-built on open source, and we'd love to have you hang out in our community.
-
-**Imposter syndrome disclaimer**: We want your help. No, really.
-
-There may be a little voice inside your head that is telling you that you're not
-ready to be an open source contributor; that your skills aren't nearly good
-enough to contribute. What could you possibly offer a project like this one?
-
-We assure you - the little voice in your head is wrong. If you can write code at
-all, you can contribute code to open source. Contributing to open source
-projects is a fantastic way to advance one's coding skills. Writing perfect code
-isn't the measure of a good developer (that would disqualify all of us!); it's
-trying to create something, making mistakes, and learning from those
-mistakes. That's how we all improve, and we are happy to help others learn.
-
-Being an open source contributor doesn't just mean writing code, either. You can
-help out by writing documentation, tests, or even giving feedback about the
-project (and yes - that includes giving feedback about the contribution
-process). Some of these contributions may be the most valuable to the project as
-a whole, because you're coming to the project with fresh eyes, so you can see
-the errors and assumptions that seasoned contributors have glossed over.
-
-Note: This disclaimer was originally written by
-`Adrienne Lowe <https://github.com/adriennefriend>`_ for a
-`PyCon talk <https://www.youtube.com/watch?v=6Uj746j9Heo>`_, and was adapted by
-fazel_file_generator based on its use in the README file for the
-`MetPy project <https://github.com/Unidata/MetPy>`_.
+We love contributions! fazel_file_generator is open source, and it is needed
+by everyone at the 46m. So, if you find a bug, raise an issue, or make a PR!
