@@ -112,7 +112,7 @@ def main(args=None):
     else:
         try:
             if not args.quiet:
-                print_("Source not found in common list, searching online")
+                print("Source not found in common list, searching online")
             source = SkyCoord.from_name(args.source)
             source_found = False
         except Exception:
