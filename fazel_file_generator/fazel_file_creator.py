@@ -23,8 +23,8 @@ source_list = {r["name"]: r["coord"] for r in QTable.read(p)}
 # Parse command line argument
 
 tc = Time.now()
-midnight = Time("%s 00:00:00" % Time(int(Time.now().mjd), format="mjd").iso[:10])
-ts_d = int((tc - midnight).to(u.h).value)
+midnight = tc.iso[:10]
+ts_d = int((tc - Time(midnight)).to(u.h).value)
 
 parser = argparse.ArgumentParser(description="Fazel File Creation")
 parser.add_argument(
@@ -39,7 +39,7 @@ parser.add_argument(
     "--date",
     type=str,
     help="Date (yyyy-mm-dd) (defaults to current date)",
-    default=Time(int(Time.now().mjd), format="mjd").iso[:10],
+    default=midnight,
 )
 parser.add_argument(
     "-f",
@@ -68,7 +68,7 @@ parser.add_argument(
     "--time-step",
     type=int,
     default=1,
-    help="Time delta between pointings in seconds )defaults to 1)",
+    help="Time delta between pointings in seconds (defaults to 1)",
 )
 args = parser.parse_args()
 
