@@ -1,0 +1,44 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: name, datatype: string}
+# - {name: coord.ra, unit: deg, datatype: float64}
+# - {name: coord.dec, unit: deg, datatype: float64}
+# meta: !!omap
+# - __serialized_columns__:
+#     coord:
+#       __class__: astropy.coordinates.sky_coordinate.SkyCoord
+#       dec: !astropy.table.SerializedColumn
+#         __class__: astropy.coordinates.angles.core.Latitude
+#         unit: &id001 !astropy.units.Unit {unit: deg}
+#         value: !astropy.table.SerializedColumn {name: coord.dec}
+#       frame: icrs
+#       ra: !astropy.table.SerializedColumn
+#         __class__: astropy.coordinates.angles.core.Longitude
+#         unit: *id001
+#         value: !astropy.table.SerializedColumn {name: coord.ra}
+#         wrap_angle: !astropy.coordinates.Angle
+#           unit: *id001
+#           value: 360.0
+#       representation_type: spherical
+# schema: astropy-2.0
+name coord.ra coord.dec
+casa 350.866417 58.811778
+psrb1957+20 299.90311667 20.80405528
+psrb0531+21 83.63307625 22.01449328
+psrb0329+54 53.24727617 54.57917997
+psrb1133+16 174.01325 15.85267222
+psrb1929+10 293.05746 10.99256
+psrb0809+74 123.74791667 74.48491667
+3c380 277.382422 48.74615523
+psrb2217+47 334.95057917 47.91498056
+psrb1919+21 290.43672917 21.88395833
+3c286 202.7845346 30.50915615
+psrb0950+08 148.2887 7.9266
+qsoj0550+2326 87.697462063542 23.446715810583
+j0603+2159 90.9648211458 21.9938055833
+psr0329+54 53.24727617 54.57917997
+virgoa 187.70593076 12.39112329
+psrb1508+55 227.357 55.5258
+crab 83.6287 22.0147
+cyga 299.86815237 40.7339159
