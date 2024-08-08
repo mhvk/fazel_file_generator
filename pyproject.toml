@@ -14,12 +14,14 @@ license = { file = "licenses/LICENSE.rst" }
 authors = [
   { name = "Rob Main, Fang Xi Lin, Daniel Baker, Jing Luo, Marten H. van Kerkwijk", email = "mhvk@astro.utoronto.ca" },
 ]
-dependencies = []
 dynamic = ["version"]
-install_requires = [
-    "astropy>=5.0",
+dependencies = [
+    "astropy",
     "matplotlib"
 ]
+
+[project.scripts]
+fazel_file_creator = "fazel_file_generator.fazel_file_creator:main"
 
 [project.optional-dependencies]
 test = [
