@@ -3,7 +3,6 @@ change the accuracy of time to second
 """
 
 import numpy as np
-import astropy.units as u
 from astropy.coordinates import AltAz
 from astropy.utils import iers
 
@@ -51,41 +50,3 @@ def fazel_file(filename, header, midnight, delta_midnight, az, alt):
             + " -0.0\n"
         )
     f.close()
-
-
-def make_fazel_file(source, sname, feed, midnight, dur, location):
-    if feed == "chime":
-        dalt = -3.45 * u.deg
-        daz0 = -3.25 * u.deg
-        alt0 = 11.90 * u.deg
-        tol0 = 0.1
-    elif feed == "hirax":
-        dalt = 0.0 * u.deg
-        daz0 = 0.0 * u.deg
-        alt0 = 0.0 * u.deg
-        tol0 = 0.1
-    elif feed == "nooffsets":
-        dalt = 0.0 * u.deg
-        daz0 = 0.0 * u.deg
-        alt0 = 0.0 * u.deg
-        tol0 = 0.1 * u.deg
-    delta_midnight = np.linspace(0, dur, dur * 60 * 6 + 1) * u.hour
-    daz, dalt, az2, alt2, tol = get_offsets(
-        get_altaz(source, location, midnight, delta_midnight), daz0, dalt, alt0, tol0
-    )
-    header = (
-        "# "
-        + sname
-        + " "
-        + source.to_string("hmsdms")
-        + " ; "
-        + "alt_offset: "
-        + str(dalt)
-        + " ; az_offset: "
-        + str(daz0)
-        + " at alt="
-        + str(alt0)
-        + "\n"
-    )
-    filename = "fazel_" + sname + "_" + midnight.isot + "_hdr.txt"
-    fazel_file(filename, header, midnight, delta_midnight, az2, alt2)
