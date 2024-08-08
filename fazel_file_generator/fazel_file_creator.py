@@ -78,6 +78,13 @@ def main(args=None):
         default=1,
         help="Time delta between pointings in seconds (defaults to 1)",
     )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        help="No output or plot, just make fazel file (default: False)",
+        action="store_const",
+        const=True,
+    )
 
     args = parser.parse_args(args)
 
@@ -104,7 +111,8 @@ def main(args=None):
         source_found = True
     else:
         try:
-            print("Source not found in common list, searching online")
+            if not args.quiet:
+                print_("Source not found in common list, searching online")
             source = SkyCoord.from_name(args.source)
             source_found = False
         except Exception:
@@ -112,6 +120,9 @@ def main(args=None):
                 source = SkyCoord.from_name("PSR " + args.source)
                 source_name = "psr" + source_name
             except Exception:
+                if args.quiet:
+                    raise
+
                 print("Source not found online, input coordinates manually? (y/n)")
                 val2 = input()
                 if strtobool(val2):
@@ -139,36 +150,37 @@ def main(args=None):
         dalt0 = 0 * u.deg
         daz0 = 0 * u.deg
 
-    print("Creating Fazel file for     :", args.source)
-    print("Date (UTC)                  :", args.date)
-    print("Starting hour (0=midnight)  :", args.hour_start)
-    print("Feed                        :", args.feed)
-    print("Alt Offset                  :", dalt0)
-    print("Az Offset                   :", daz0)
-    print("Observation length          :", args.number_hours, "hours")
-    print("Time step between pointings :", args.time_step, "seconds")
-    print("Are these correct? (y/n)\n")
-
-    val = input()
-    if strtobool(val):
-        print("Sky Coords")
-        print("RA :", str(source.ra.hms))
-        print("DEC:", str(source.dec.deg), "degrees")
+    if not args.quiet:
+        print("Creating Fazel file for     :", args.source)
+        print("Date (UTC)                  :", args.date)
+        print("Starting hour (0=midnight)  :", args.hour_start)
+        print("Feed                        :", args.feed)
+        print("Alt Offset                  :", dalt0)
+        print("Az Offset                   :", daz0)
+        print("Observation length          :", args.number_hours, "hours")
+        print("Time step between pointings :", args.time_step, "seconds")
         print("Are these correct? (y/n)\n")
-        val2 = input()
-        if strtobool(val2):
-            pass
-        else:
-            print("RA (astropy formats)")
-            ra_inpt = input()
-            print(r"Dec (astropy formats))")
-            dec_inpt = input()
-            source = SkyCoord(ra=ra_inpt, dec=dec_inpt)
-    else:
-        print("Goodbye.")
-        exit()
 
-    print("Okay, computing stuff...")
+        val = input()
+        if strtobool(val):
+            print("Sky Coords")
+            print("RA :", str(source.ra.hms))
+            print("DEC:", str(source.dec.deg), "degrees")
+            print("Are these correct? (y/n)\n")
+            val2 = input()
+            if strtobool(val2):
+                pass
+            else:
+                print("RA (astropy formats)")
+                ra_inpt = input()
+                print(r"Dec (astropy formats))")
+                dec_inpt = input()
+                source = SkyCoord(ra=ra_inpt, dec=dec_inpt)
+        else:
+            print("Goodbye.")
+            exit()
+
+        print("Okay, computing stuff...")
 
     if not source_found:
         source_list[source_name] = source
@@ -210,66 +222,70 @@ def main(args=None):
 
     # Test if source is in Alt range of ARO
     if alt2.max() < alt0:
-        print("Source is not visible during specified run")
-        exit()
+        raise ValueError("Source is not visible during specified run")
+
     alt_err = np.argwhere(np.diff(np.sign(alt2 - alt0)) > 0).flatten()
-    if alt_err.shape[0] > 0:
-        print("Source enters Alt range at:")
-        print(midnight + delta_midnight[alt_err], "UTC")
-    else:
-        print("Source starts in Alt range")
+    if not args.quiet:
+        if alt_err.shape[0] > 0:
+            print("Source enters Alt range at:")
+            print(midnight + delta_midnight[alt_err], "UTC")
+        else:
+            print("Source starts in Alt range")
     alt_err = np.argwhere(np.diff(np.sign(alt2 - alt0)) < 0).flatten()
-    if alt_err.shape[0] > 0:
-        print("Source leaves Alt range at:")
-        print(midnight + delta_midnight[alt_err], "UTC")
-    else:
-        print("Source ends in Alt range")
+    if not args.quiet:
+        if alt_err.shape[0] > 0:
+            print("Source leaves Alt range at:")
+            print(midnight + delta_midnight[alt_err], "UTC")
+        else:
+            print("Source ends in Alt range")
 
-    # Throw a warning if we are increasing across 40deg az or decreasing across 52deg az.
-    cw1 = (51 - 11) * u.deg
-    cw2 = (41 + 11) * u.deg
-    cw_err = np.concatenate(
-        (
-            np.argwhere(np.diff(np.sign(az2 - cw1)) > 0).flatten(),
-            np.argwhere(np.diff(np.sign(az2 - cw2)) < 0).flatten(),
+        # Throw a warning if we are increasing across 40deg az or decreasing across 52deg az.
+        cw1 = (51 - 11) * u.deg
+        cw2 = (41 + 11) * u.deg
+        cw_err = np.concatenate(
+            (
+                np.argwhere(np.diff(np.sign(az2 - cw1)) > 0).flatten(),
+                np.argwhere(np.diff(np.sign(az2 - cw2)) < 0).flatten(),
+            )
         )
-    )
 
-    if cw_err.size > 0:
-        print(
-            "You might encounter the cable wrap issue at the following times. Check source by hand!"
-        )
-        print(midnight + delta_midnight[cw_err], "UTC")
+        if cw_err.size > 0:
+            print(
+                "You might encounter the cable wrap issue at the following times. Check source by hand!"
+            )
+            print(midnight + delta_midnight[cw_err], "UTC")
 
-    fig, ax = plt.subplots(nrows=2)
-    ax[0].plot(delta_midnight, altazs.alt, label="Source Location")
-    ax[0].plot(delta_midnight, alt2, label="Telescope Pointing")
-    ax[0].axhline(10.3, color="k", ls="--", lw=2)
-    ax[0].legend(loc=0)
-    ax[0].set_xlim(delta_midnight[0].value, delta_midnight[-1].value)
-    ax[0].set_title("%s Altitude" % args.source)
-    ax[0].set_xlabel("UTC")
-    ax[0].set_ylabel("Altitude (deg)")
+        fig, ax = plt.subplots(nrows=2)
+        ax[0].plot(delta_midnight, altazs.alt, label="Source Location")
+        ax[0].plot(delta_midnight, alt2, label="Telescope Pointing")
+        ax[0].axhline(10.3, color="k", ls="--", lw=2)
+        ax[0].legend(loc=0)
+        ax[0].set_xlim(delta_midnight[0].value, delta_midnight[-1].value)
+        ax[0].set_title("%s Altitude" % args.source)
+        ax[0].set_xlabel("UTC")
+        ax[0].set_ylabel("Altitude (deg)")
 
-    ax[1].plot(delta_midnight, altazs.az, label="Source Location")
-    ax[1].plot(delta_midnight, az2, label="Telescope Pointing")
-    ax[1].legend(loc=0)
-    ax[1].set_xlim(delta_midnight[0].value, delta_midnight[-1].value)
-    ax[1].set_title("%s Azimuth" % args.source)
-    ax[1].set_xlabel("UTC")
-    ax[1].set_ylabel("Azimuth (deg)")
-    plt.tight_layout()
-    plt.show(block=False)
+        ax[1].plot(delta_midnight, altazs.az, label="Source Location")
+        ax[1].plot(delta_midnight, az2, label="Telescope Pointing")
+        ax[1].legend(loc=0)
+        ax[1].set_xlim(delta_midnight[0].value, delta_midnight[-1].value)
+        ax[1].set_title("%s Azimuth" % args.source)
+        ax[1].set_xlabel("UTC")
+        ax[1].set_ylabel("Azimuth (deg)")
+        plt.tight_layout()
+        plt.show(block=False)
 
-    print("Are you happy with these ranges Dave? (y/n)")
+        print("Are you happy with these ranges Dave? (y/n)")
 
-    val = input()
-    if strtobool(val):
-        pass
-    else:
-        print("Goodbye")
-        exit()
-    print("Generating Fazel file", filename)
+        val = input()
+        if strtobool(val):
+            pass
+        else:
+            print("Goodbye")
+            exit()
+
+        print("Generating Fazel file", filename)
+
     # FIX THIS TO CHOOSE WHICH HEADER YOU WANT
     # IT IS GOOD TO PUT YOUR SOURCE, THE DATE OF OBSERVATION, AND THE FEED YOU ARE USING
     header = (
