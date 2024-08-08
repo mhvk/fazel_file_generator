@@ -16,6 +16,10 @@ authors = [
 ]
 dependencies = []
 dynamic = ["version"]
+install_requires = [
+    "astropy>=5.0",
+    "matplotlib"
+]
 
 [project.optional-dependencies]
 test = [
