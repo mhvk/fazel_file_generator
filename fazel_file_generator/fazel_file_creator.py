@@ -3,7 +3,6 @@
 ## Last edited 2018-08-16
 
 from pathlib import Path
-from distutils.util import strtobool
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,6 +19,17 @@ def load_source_list(filename="sources.ecsv"):
     if not p.exists():
         p = Path(__file__).parent / "data" / filename
     return {r["name"]: r["coord"] for r in QTable.read(p)}
+
+
+def truthy(s, empty=True):
+    if s == "":
+        return empty
+    elif s in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif s in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"{s} is neither truthy nor falsey")
 
 
 def main(args=None):
@@ -123,9 +133,9 @@ def main(args=None):
                 if args.quiet:
                     raise
 
-                print("Source not found online, input coordinates manually? (y/n)")
+                print("Source not found online, input coordinates manually? ([y]/n)")
                 val2 = input()
-                if strtobool(val2):
+                if truthy(val2):
                     print("RA (astropy formats)")
                     ra_inpt = input()
                     print(r"Dec (astropy formats))")
@@ -159,16 +169,16 @@ def main(args=None):
         print("Az Offset                   :", daz0)
         print("Observation length          :", args.number_hours, "hours")
         print("Time step between pointings :", args.time_step, "seconds")
-        print("Are these correct? (y/n)\n")
+        print("Are these correct? ([y]/n)\n")
 
         val = input()
-        if strtobool(val):
+        if truthy(val):
             print("Sky Coords")
             print("RA :", str(source.ra.hms))
             print("DEC:", str(source.dec.deg), "degrees")
-            print("Are these correct? (y/n)\n")
+            print("Are these correct? ([y]/n)\n")
             val2 = input()
-            if strtobool(val2):
+            if truthy(val2):
                 pass
             else:
                 print("RA (astropy formats)")
@@ -275,10 +285,10 @@ def main(args=None):
         plt.tight_layout()
         plt.show(block=False)
 
-        print("Are you happy with these ranges Dave? (y/n)")
+        print("Are you happy with these ranges Dave? ([y]/n)")
 
         val = input()
-        if strtobool(val):
+        if truthy(val):
             pass
         else:
             print("Goodbye")
