@@ -7,12 +7,10 @@ import matplotlib.pyplot as plt
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-from astropy.coordinates import ICRS, Galactic, FK4, FK5
 from astropy.table import QTable
-from obs_planning_revised import *
+from obs_planning_revised import get_offsets, fazel_file
 import argparse
 from distutils.util import strtobool
-from astropy.utils import iers
 
 # Load saved source locations
 source_list = {r["name"]: r["coord"] for r in QTable.read("sources.ecsv")}
@@ -95,11 +93,11 @@ else:
         print("Source not found in common list, searching online")
         source = SkyCoord.from_name(args.source)
         source_found = False
-    except:
+    except Exception:
         try:
             source = SkyCoord.from_name("PSR " + args.source)
             source_name = "psr" + source_name
-        except:
+        except Exception:
             print("Source not found online, input coordinates manually? (y/n)")
             val2 = input()
             if strtobool(val2):
@@ -158,12 +156,11 @@ else:
 
 print("Okay, computing stuff...")
 
-if source_found == False:
-    f = open("sources.pkl", "wb")
-    source_list.update({source_name: source})
-    pickle.dump(source_list, f)
-    f.close()
-#
+if not source_found:
+    source_list[source_name] = source
+    t = QTable([list(source_list.keys()), SkyCoord(list(source_list.values()))],
+               names=["name", "coord"])
+    t.write("sources.ecsv", overwrite=True)
 
 
 # ARO location

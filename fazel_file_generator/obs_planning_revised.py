@@ -4,17 +4,12 @@ change the accuracy of time to second
 
 import numpy as np
 import astropy.units as u
-from astropy.time import Time
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+from astropy.coordinates import AltAz
 from astropy.utils import iers
 
 iers.conf.iers_auto_url_mirror = "https://datacenter.iers.org/data/9/finals2000A.all"
 iers.conf.iers_auto_url = "https://datacenter.iers.org/data/9/finals2000A.all"
 iers.IERS_A_URL = "https://datacenter.iers.org/data/9/finals2000A.all"
-
-
-def __init__():
-    return
 
 
 def get_altaz(source, dish, time0, dtime):
