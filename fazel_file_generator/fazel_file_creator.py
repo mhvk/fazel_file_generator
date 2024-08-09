@@ -12,6 +12,7 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.table import QTable
 
 from fazel_file_generator.obs_planning_revised import get_offsets, fazel_file
+from fazel_file_generator import rasters
 
 def load_source_list(filename="sources.ecsv"):
     # Load saved source locations
@@ -95,7 +96,49 @@ def main(args=None):
         action="store_const",
         const=True,
     )
-
+    parser.add_argument(
+        "-r",
+        "--raster",
+        type=int,
+        default=0,
+        help="Raster number of points in each direction (default: 0, i.e., no raster)",
+    )
+    parser.add_argument(
+        "-rt",
+        "--raster-type",
+        help="Type of raster scan (spiral or zigzag) (default: zigzag)",
+        type=str,
+        default="zigzag",
+    )
+    parser.add_argument(
+        "-rhs",
+        "--raster-hour-start",
+        type=float,
+        default=-1.0,
+        help="Start hour for raster (defaults to start)",
+    )
+    parser.add_argument(
+        "-rdt",
+        "--raster-time-step",
+        type=int,
+        default=30,
+        help="Time delta between raster pointings in seconds (defaults to 30)",
+    )
+    parser.add_argument(
+        "-ro",
+        "--raster-offset",
+        type=float,
+        default=0.5,
+        help="Raster offset between steps (degrees; default 0.5)",
+    )
+    parser.add_argument(
+        "-rio",
+        "--raster-include-origin",
+        type=int,
+        default=0,
+        help=("Go from/to raster origin (default 0: no; 1: yes; "
+              "-1: yes but omit (0, 0)"),
+    )
     args = parser.parse_args(args)
 
     # Convert to simplified source name
@@ -148,7 +191,6 @@ def main(args=None):
                     print("Goodbye")
                     exit()
 
-
     # FOR OFFSET CHIME FEED (because it isnt on axis)
     if args.feed == "chime":
         dalt0 = -3.45 * u.deg
@@ -169,6 +211,22 @@ def main(args=None):
         print("Az Offset                   :", daz0)
         print("Observation length          :", args.number_hours, "hours")
         print("Time step between pointings :", args.time_step, "seconds")
+        if args.raster:
+            print("Raster scan added with size :", args.raster, "in each direction")
+            print("Raster scan type            :", args.raster_type)
+            print("Raster scan hour start      :", args.raster_hour_start, "hours")
+            print("Raster scan time step       :", args.raster_time_step, "seconds")
+            print("Raster scan offset size     :", args.raster_offset, "degree")
+            print("Raster scan include origin  :", args.raster_include_origin)
+            include_origin = {
+                -1: None,
+                0: False,
+                1: True}.get(np.sign(args.raster_include_origin))
+            raster = getattr(rasters, args.raster_type)
+            scan = raster(args.raster, include_origin)
+            print("Raster points (offset units):\n", scan)
+        else:
+            scan = []
         print("Are these correct? ([y]/n)\n")
 
         val = input()
@@ -226,6 +284,18 @@ def main(args=None):
 
     alt0 = 11.9 * u.deg
     tol0 = int(1) * u.deg
+
+    if args.raster:
+        daz0 = daz0 * np.ones(delta_midnight.shape)
+        dalt0 = dalt0 * np.ones(delta_midnight.shape)
+        # TODO: this can really be smarter than a loop!
+        tstart = args.raster_hour_start * u.h
+        for i, (x, y) in enumerate(scan):
+            tend = tstart + args.raster_time_step * u.s
+            sel = (delta_midnight >= tstart) & (delta_midnight < tend)
+            daz0[sel] += x * args.raster_offset * u.deg
+            dalt0[sel] += y * args.raster_offset * u.deg
+            tstart = tend
 
     daz, dalt0, az2, alt2, tol = get_offsets(altazs, daz0, dalt0, alt0, tol0)
 
