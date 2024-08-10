@@ -1,8 +1,7 @@
 # Licensed under the GPLv3 - see LICENSE
 
-import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from astropy.table import QTable
 
 from fazel_file_generator.rasters import zigzag, spiral
 
@@ -43,8 +42,8 @@ class TestRasters:
         )
     def test_zigzag(self, n, origin, expected):
         scan = zigzag(n, origin)
-        expected = np.array(expected, dtype=[("x", "f"), ("y", "f")])
-        assert_array_equal(scan, expected)
+        expected = QTable(rows=expected, dtype=["f", "f"], names=["x", "y"])
+        assert (scan == expected).all()
 
     @pytest.mark.parametrize(
         "n, origin, expected", [
@@ -90,5 +89,5 @@ class TestRasters:
         )
     def test_spiral(self, n, origin, expected):
         scan = spiral(n, origin)
-        expected = np.array(expected, dtype=[("x", "f"), ("y", "f")])
-        assert_array_equal(scan, expected)
+        expected = QTable(rows=expected, dtype=["f", "f"], names=["x", "y"])
+        assert (scan == expected).all()

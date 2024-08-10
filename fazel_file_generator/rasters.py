@@ -1,4 +1,4 @@
-import numpy as np
+from astropy.table import QTable
 
 
 def spiral(n, origin=False):
@@ -44,7 +44,7 @@ def spiral(n, origin=False):
             x += dx
             y -= dy
             scan.append((x, y))
-    return np.array(scan, dtype=[("x", "f"), ("y", "f")])
+    return QTable(rows=scan, names=["x", "y"], dtype=["f", "f"])
 
 
 def zigzag(n, origin=False):
@@ -80,4 +80,4 @@ def zigzag(n, origin=False):
             scan.append((i*dx, j*dy))
     for i in range(0 if origin is False else n-1, -1 if origin is True else 0, -1):
         scan.append((i*dx, i*dy))
-    return np.array(scan, dtype=[("x", "f"), ("y", "f")])
+    return QTable(rows=scan, names=["x", "y"], dtype=["f", "f"])
