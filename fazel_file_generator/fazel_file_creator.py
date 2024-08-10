@@ -12,7 +12,9 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.table import QTable
 
 from fazel_file_generator.obs_planning_revised import get_offsets, fazel_file
-from fazel_file_generator import rasters
+# The following functions can be used for raster creation by users.
+from fazel_file_generator.rasters import zigzag, spiral  # noqa: F401
+
 
 def load_source_list(filename="sources.ecsv"):
     # Load saved source locations
@@ -99,16 +101,9 @@ def main(args=None):
     parser.add_argument(
         "-r",
         "--raster",
-        type=int,
-        default=0,
-        help="Raster number of points in each direction (default: 0, i.e., no raster)",
-    )
-    parser.add_argument(
-        "-rt",
-        "--raster-type",
-        help="Type of raster scan (spiral or zigzag) (default: zigzag)",
         type=str,
-        default="zigzag",
+        default="",
+        help="Raster #points in each dir., raster function call, or .ecsv file (default: no raster)",
     )
     parser.add_argument(
         "-rhs",
@@ -125,19 +120,11 @@ def main(args=None):
         help="Time delta between raster pointings in seconds (defaults to 30)",
     )
     parser.add_argument(
-        "-ro",
-        "--raster-offset",
+        "-rs",
+        "--raster-scale",
         type=float,
         default=0.5,
-        help="Raster offset between steps (degrees; default 0.5)",
-    )
-    parser.add_argument(
-        "-rio",
-        "--raster-include-origin",
-        type=int,
-        default=0,
-        help=("Go from/to raster origin (default 0: no; 1: yes; "
-              "-1: yes but omit (0, 0)"),
+        help="Raster scale for steps (degrees; default 0.5)",
     )
     args = parser.parse_args(args)
 
@@ -202,6 +189,17 @@ def main(args=None):
         dalt0 = 0 * u.deg
         daz0 = 0 * u.deg
 
+    if args.raster:
+        raster = args.raster
+        if "." not in raster and "(" not in raster:
+            raster = f"zigzag({raster})"
+        try:
+            scan = eval(raster)
+        except Exception:
+            scan = QTable.read(args.raster)
+    else:
+        scan = []
+
     if not args.quiet:
         print("Creating Fazel file for     :", args.source)
         print("Date (UTC)                  :", args.date)
@@ -212,21 +210,11 @@ def main(args=None):
         print("Observation length          :", args.number_hours, "hours")
         print("Time step between pointings :", args.time_step, "seconds")
         if args.raster:
-            print("Raster scan added with size :", args.raster, "in each direction")
-            print("Raster scan type            :", args.raster_type)
+            print("Raster scan                 :", args.raster)
             print("Raster scan hour start      :", args.raster_hour_start, "hours")
             print("Raster scan time step       :", args.raster_time_step, "seconds")
-            print("Raster scan offset size     :", args.raster_offset, "degree")
-            print("Raster scan include origin  :", args.raster_include_origin)
-            include_origin = {
-                -1: None,
-                0: False,
-                1: True}.get(np.sign(args.raster_include_origin))
-            raster = getattr(rasters, args.raster_type)
-            scan = raster(args.raster, include_origin)
-            print("Raster points (offset units):\n", scan)
-        else:
-            scan = []
+            print("Raster scan scale size      :", args.raster_scale, "degree")
+
         print("Are these correct? ([y]/n)\n")
 
         val = input()
@@ -293,8 +281,8 @@ def main(args=None):
         for i, (x, y) in enumerate(scan):
             tend = tstart + args.raster_time_step * u.s
             sel = (delta_midnight >= tstart) & (delta_midnight < tend)
-            daz0[sel] += x * args.raster_offset * u.deg
-            dalt0[sel] += y * args.raster_offset * u.deg
+            daz0[sel] += x * args.raster_scale * u.deg
+            dalt0[sel] += y * args.raster_scale * u.deg
             tstart = tend
 
     daz, dalt0, az2, alt2, tol = get_offsets(altazs, daz0, dalt0, alt0, tol0)
