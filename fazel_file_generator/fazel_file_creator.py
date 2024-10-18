@@ -68,7 +68,7 @@ def main(args=None):
         type=str,
         default="chime",
         help="Which feed? (defaults to CHIME)",
-        choices=["chime", "hirax", "4m", "xmas"],
+        choices=["chime", "prime", "hirax", "4m", "xmas"],
     )
     parser.add_argument(
         "-hs",
