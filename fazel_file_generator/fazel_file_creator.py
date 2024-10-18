@@ -68,7 +68,7 @@ def main(args=None):
         type=str,
         default="chime",
         help="Which feed? (defaults to CHIME)",
-        choices=["chime", "prime", "hirax", "4m", "xmas"],
+        choices=["chime", "prime"],
     )
     parser.add_argument(
         "-hs",
@@ -182,9 +182,6 @@ def main(args=None):
     if args.feed == "chime":
         dalt0 = -3.45 * u.deg
         daz0 = -3.25 * u.deg
-    elif args.feed == "xmas":
-        dalt0 = -3.45 * u.deg
-        daz0 = 3.25 * u.deg
     else:
         dalt0 = 0 * u.deg
         daz0 = 0 * u.deg
