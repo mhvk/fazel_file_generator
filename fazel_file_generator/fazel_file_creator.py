@@ -138,6 +138,7 @@ def main(args=None):
     # casA = SkyCoord(350.866*u.deg, 58.8117*u.deg)
     # b0329 = SkyCoord('03h32m59.368s','+54d34m43.57s')
 
+    source_found = False
     # Load source coordinates
     if args.source in source_list.keys():
         source = source_list[args.source]
@@ -154,11 +155,12 @@ def main(args=None):
             if not args.quiet:
                 print("Source not found in common list, searching online")
             source = SkyCoord.from_name(args.source)
-            source_found = False
+            source_found = True
         except Exception:
             try:
                 source = SkyCoord.from_name("PSR " + args.source)
                 source_name = "psr" + source_name
+                source_found = True
             except Exception:
                 if args.quiet:
                     raise
@@ -173,7 +175,7 @@ def main(args=None):
                     source = SkyCoord(
                         ra=float(ra_inpt) * u.deg, dec=float(dec_inpt) * u.deg
                     )
-                    source_found = False
+                    source_found = True
                 else:
                     print("Goodbye")
                     exit()
