@@ -10,6 +10,7 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.table import QTable
+from datetime import datetime
 
 from fazel_file_generator.obs_planning_revised import get_offsets, fazel_file
 # The following functions can be used for raster creation by users.
@@ -131,7 +132,8 @@ def main(args=None):
     # Convert to simplified source name
     source_name = args.source.lower().replace(" ", "")
 
-    filename = "fazel_%s_%s_%s.txt" % (source_name, args.date, args.feed)
+    current_datetime = datetime.utcnow().replace(microsecond=0).strftime("%Y%m%dT%H%M")
+    filename = "%s_fazel_%s_%s.txt" % (current_datetime, source_name, args.feed)
 
 
     # 3c286 = SkyCoord('13h31m08.29s','+30d30m33.0s')
@@ -155,12 +157,10 @@ def main(args=None):
             if not args.quiet:
                 print("Source not found in common list, searching online")
             source = SkyCoord.from_name(args.source)
-            source_found = True
         except Exception:
             try:
                 source = SkyCoord.from_name("PSR " + args.source)
                 source_name = "psr" + source_name
-                source_found = True
             except Exception:
                 if args.quiet:
                     raise
@@ -175,7 +175,6 @@ def main(args=None):
                     source = SkyCoord(
                         ra=float(ra_inpt) * u.deg, dec=float(dec_inpt) * u.deg
                     )
-                    source_found = True
                 else:
                     print("Goodbye")
                     exit()
