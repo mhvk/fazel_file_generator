@@ -132,8 +132,7 @@ def main(args=None):
     # Convert to simplified source name
     source_name = args.source.lower().replace(" ", "")
 
-    current_datetime = datetime.utcnow().replace(microsecond=0).strftime("%Y%m%dT%H%M")
-    filename = "%s_fazel_%s_%s.txt" % (current_datetime, source_name, args.feed)
+    filename = "fazel_%s_%s_%s.txt" % (source_name, args.date, args.feed)
 
 
     # 3c286 = SkyCoord('13h31m08.29s','+30d30m33.0s')
