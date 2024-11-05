@@ -10,7 +10,6 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.table import QTable
-from datetime import datetime
 
 from fazel_file_generator.obs_planning_revised import get_offsets, fazel_file
 # The following functions can be used for raster creation by users.
